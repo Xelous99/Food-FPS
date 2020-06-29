@@ -4,11 +4,17 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerScript : MonoBehaviour
 {
     //General  Variables
     static GameObject player;
+    public GunScript primary;
+    RaycastHit sight;
+
+    [SerializeField]
+    Canvas UI;
 
     static Camera playerCam;
 
@@ -32,6 +38,8 @@ public class PlayerScript : MonoBehaviour
     //Player body variables
     float x;
     float z;
+
+    [SerializeField]
     float playerSpeed = 10f;
     public CharacterController controller;
     Vector3 velocity;
@@ -46,6 +54,7 @@ public class PlayerScript : MonoBehaviour
         playerBody = player.transform;
         controller = player.GetComponent<CharacterController>();
         groundCheck = player.transform.Find("GroundCheck").transform;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
@@ -53,6 +62,48 @@ public class PlayerScript : MonoBehaviour
     {
         movePlayer();
         rotatePlayer();
+        look();
+        checkForActions();
+    }
+
+    private void checkForActions() {
+        if (Input.GetKeyDown(KeyCode.F) && sight.transform.gameObject.tag == "Weapon") {
+            primary = sight.transform.gameObject.GetComponent<GunScript>();
+            primary.equipt(player);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q)) {
+            primary.switchWeapon(!primary.IsEquipted);
+        }
+
+        if (Input.GetKeyDown(KeyCode.X)) {
+            primary.switchWeapon(true);
+            primary.dropWeapon();
+            primary = null;
+        }
+
+        if (Input.GetMouseButtonDown(0) && primary != null)
+        {
+            primary.shoot();
+        }
+    }
+
+    //Sends out a constant raycast to see what the player is looking at.
+    private void look() {
+        
+        Text UIText;
+        UIText = UI.transform.Find("Text").GetComponent<Text>();
+        if (Physics.Raycast(playerCam.transform.position, playerCam.transform.forward, out sight, 10f))
+        {
+            if (sight.transform.gameObject.tag == "Weapon") {
+                UIText.enabled = true;
+            }
+            else
+            {
+                UIText.enabled = false;
+            }
+
+        }
     }
 
     //Moves the player object 
@@ -87,7 +138,7 @@ public class PlayerScript : MonoBehaviour
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
+        
         playerBody.Rotate(Vector3.up * mouseX);
         playerCam.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
