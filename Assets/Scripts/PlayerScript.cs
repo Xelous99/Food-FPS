@@ -64,6 +64,10 @@ public class PlayerScript : MonoBehaviour
         rotatePlayer();
         look();
         checkForActions();
+        if (Input.GetMouseButton(0) && primary != null)
+        {
+            primary.shoot();
+        }
     }
 
     private void checkForActions() {
@@ -82,10 +86,7 @@ public class PlayerScript : MonoBehaviour
             primary = null;
         }
 
-        if (Input.GetMouseButtonDown(0) && primary != null)
-        {
-            primary.shoot();
-        }
+        
     }
 
     //Sends out a constant raycast to see what the player is looking at.
