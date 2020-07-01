@@ -13,13 +13,16 @@ public class GunScript : MonoBehaviour
     public ParticleSystem[] particles;
 
     //Gun Variables
-    [SerializeField]
-    public float damage = 5f;
 
-    Vector3 scale;
+    [SerializeField]
+    public GameObject projectile;
+
+    [SerializeField]
+    public float fireRate = 1f;
+    private float fireWait = 0f;
 
     public bool IsEquipted { 
-        get { return isEquipted; } 
+        get { return isEquipted; }
     }
 
 
@@ -32,7 +35,6 @@ public class GunScript : MonoBehaviour
     public void equipt(GameObject player) {
 
         Transform playerCam = player.transform.Find("PlayerView").transform;
-        scale = gameObject.transform.localScale;
         gameObject.transform.localPosition = playerCam.GetComponent<Camera>()
             .transform.Find("Grip").transform.position;
         
@@ -55,13 +57,15 @@ public class GunScript : MonoBehaviour
     }
 
     public void shoot() {
-        Transform barrel = gameObject.transform.Find("Barrel").transform;
-        particles[0].Play();
-        particles[1].Play();
-        RaycastHit target;
-        if (Physics.Raycast(barrel.position, barrel.forward, out target, 5f)) {
-            EnemyScript enemy = target.transform.GetComponent<EnemyScript>();
-            enemy.takeDamage(damage);
+        if (Time.time >= fireWait) {
+            Transform barrel = gameObject.transform.Find("Barrel").transform;
+            Transform gun = gameObject.transform.Find("GunPos").transform;
+            particles[0].Play();
+            particles[1].Play();
+            GameObject bullet = projectile;
+            GameObject tempbullet = Instantiate(bullet, barrel.position, Quaternion.identity);
+            tempbullet.transform.GetComponent<Projectile>().moveProjectile((barrel.position - gun.position).normalized);
+            fireWait = Time.time + 1f / fireRate;
         }
     }
 }
